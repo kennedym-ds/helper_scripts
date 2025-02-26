@@ -50,7 +50,7 @@ def generate_complex_time_series_v2(length=5000, base_period=50, pattern_periods
 def plot_anomalies(df, distances, m, indices, motif_indices, ax=None):  # Added motif_indices
     """Plots the time series, matrix profile, anomalies, and motifs."""
     if ax is None:
-        fig, axes = plt.subplots(3, 1, sharex=True, figsize=(14, 9))
+        fig, axes = plt.subplots(2, 1, sharex=True, figsize=(14, 6))
         ax = axes.flatten()
 
     # Plot Time Series
@@ -77,13 +77,6 @@ def plot_anomalies(df, distances, m, indices, motif_indices, ax=None):  # Added 
 
     ax[1].legend()
     ax[0].legend()
-
-    # Plot Raw Matrix Profile
-    raw_mp = stumpy.core.mass(df['value'].iloc[:m].values, df['value'].values)
-    ax[2].plot(df['timestamp'][:len(raw_mp)], raw_mp, linewidth=0.8)
-    ax[2].set_title("Raw Matrix Profile (First m values)")
-    ax[2].set_ylabel("Distance")
-    ax[2].xaxis.set_major_formatter(DateFormatter("%Y-%m-%d"))
 
     plt.tight_layout()
     return ax
@@ -132,9 +125,8 @@ def main():
     motif_indices = find_motifs(distances, num_motifs)
 
     # Visualize
-    fig, axes = plt.subplots(3, 1, sharex=True, figsize=(14, 9))
+    fig, axes = plt.subplots(2, 1, sharex=True, figsize=(14, 6))
     plot_anomalies(df, distances, m, indices, motif_indices, axes.flatten())  # Pass motif_indices
-    plt.suptitle("Stumpy Anomaly Detection - Complex Multi-Pattern", fontsize=16)
     plt.show()
 
     print("\nTop Anomaly Subsequences:")
