@@ -1,0 +1,14 @@
+# Basic Requirements for Learning Series Development
+# Note: This is a minimal set for basic testing. See full requirements.txt for complete setup.
+
+# Essential for development and testing
+numpy
+pandas
+matplotlib
+scikit-learn
+
+# For Jupyter notebooks (optional for basic testing)
+# jupyter
+# ipywidgets
+
+# Note: Install full requirements.txt for complete learning series experience

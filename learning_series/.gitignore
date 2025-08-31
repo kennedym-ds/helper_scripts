@@ -1,0 +1,144 @@
+# Machine Learning Learning Series .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+ml_learning_env/
+venv/
+env/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Data files (large datasets should not be committed)
+*.csv
+*.json
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.parquet
+*.feather
+
+# Except sample/demo data
+!**/datasets/sample_*.csv
+!**/datasets/demo_*.csv
+
+# Model files (trained models are usually too large)
+*.joblib
+*.model
+*.onnx
+*.pb
+*.pth
+*.pt
+
+# Except small demo models
+!**/models/demo_*.pkl
+
+# Logs and monitoring
+logs/
+*.log
+mlruns/
+wandb/
+
+# Environment files
+.env
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Reports and outputs
+reports/*.html
+reports/*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Except documentation images
+!docs/images/
+!**/README_images/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cache
+.cache/
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Profiling
+.prof
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Kubernetes
+*.yaml
+*.yml
+!requirements.txt
+!config.yaml
+
+# Secrets and credentials
+*.key
+*.pem
+*.crt
+*.csr
+*_secret*
+*_private*
+secrets/
+credentials/
