@@ -339,3 +339,142 @@ def run_bacteria_algorithm(X, y, model_type='xgboost', pop_size=20, generations=
         population = new_population
         population.sort(key=adjusted_fitness, reverse = True) #Sort new_population
         population = population[:pop_size] # Take best performing bacteria
+
+    print(f"\nFinal Best Fitness: {best_fitness:.4f}")
+    print(f"Final Best Model Type: {best_model.model_type}")
+    print(f"Final Best Parameters: {best_model.get_params()}")
+    if best_model.model_type == 'keras':
+        print(f"Final Best Architecture: {best_model.get_architecture()}")
+
+    return {
+        'best_model': best_model,
+        'best_fitness': best_fitness,
+        'fitness_history': best_fitness_history,
+        'final_population': population,
+        'graveyard': graveyard
+    }
+
+
+def evaluate_model_performance(results, X_test, y_test):
+    """Evaluates the best model on a test set."""
+    best_model = results['best_model']
+    predictions = best_model.predict(X_test)
+    
+    if best_model.model_type == 'xgboost':
+        # Convert probabilities to binary predictions
+        binary_predictions = np.round(predictions)
+        test_accuracy = accuracy_score(y_test, binary_predictions)
+    elif best_model.model_type == 'keras':
+        # Convert probabilities to binary predictions
+        binary_predictions = (predictions > 0.5).astype(int).flatten()
+        test_accuracy = accuracy_score(y_test, binary_predictions)
+    
+    print(f"\nTest Set Performance:")
+    print(f"Test Accuracy: {test_accuracy:.4f}")
+    return test_accuracy
+
+
+def plot_fitness_evolution(fitness_history):
+    """Plots the evolution of best fitness over generations."""
+    try:
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(10, 6))
+        plt.plot(range(1, len(fitness_history) + 1), fitness_history, marker='o')
+        plt.title('Best Fitness Evolution Over Generations')
+        plt.xlabel('Generation')
+        plt.ylabel('Best Fitness')
+        plt.grid(True, alpha=0.3)
+        plt.show()
+    except ImportError:
+        print("Matplotlib not available. Cannot plot fitness evolution.")
+
+
+if __name__ == "__main__":
+    print("Bacteria-Inspired Algorithm Demo")
+    print("=================================")
+    
+    # Generate sample data
+    print("\nGenerating sample classification dataset...")
+    X, y = make_classification(n_samples=1000, n_features=20, n_informative=15, 
+                             n_redundant=5, n_classes=2, random_state=42)
+    
+    # Split data
+    X_train_full, X_test, y_train_full, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y)
+    
+    print(f"Dataset shape: {X.shape}")
+    print(f"Training set size: {X_train_full.shape[0]}")
+    print(f"Test set size: {X_test.shape[0]}")
+    
+    # Test with XGBoost models
+    print("\n" + "="*50)
+    print("Running Bacteria Algorithm with XGBoost models")
+    print("="*50)
+    
+    xgb_results = run_bacteria_algorithm(
+        X_train_full, y_train_full,
+        model_type='xgboost',
+        pop_size=10,  # Smaller population for demo
+        generations=5,  # Fewer generations for demo
+        conjugation_rate=0.7,
+        transformation_rate=0.3,
+        mutation_rate=0.15,
+        diversity_weight=0.1,
+        n_jobs=1  # Single thread for demo stability
+    )
+    
+    # Evaluate on test set
+    xgb_test_accuracy = evaluate_model_performance(xgb_results, X_test, y_test)
+    
+    # Plot fitness evolution
+    print("\nPlotting fitness evolution...")
+    plot_fitness_evolution(xgb_results['fitness_history'])
+    
+    # Test with Keras models (if TensorFlow is available)
+    try:
+        print("\n" + "="*50)
+        print("Running Bacteria Algorithm with Keras models")
+        print("="*50)
+        
+        keras_results = run_bacteria_algorithm(
+            X_train_full, y_train_full,
+            model_type='keras',
+            pop_size=8,  # Smaller population for neural networks
+            generations=3,  # Fewer generations due to training time
+            conjugation_rate=0.6,
+            transformation_rate=0.4,
+            mutation_rate=0.2,
+            diversity_weight=0.15,
+            n_jobs=1  # Single thread for TensorFlow stability
+        )
+        
+        # Evaluate on test set
+        keras_test_accuracy = evaluate_model_performance(keras_results, X_test, y_test)
+        
+        # Plot fitness evolution
+        print("\nPlotting Keras fitness evolution...")
+        plot_fitness_evolution(keras_results['fitness_history'])
+        
+        # Compare results
+        print("\n" + "="*50)
+        print("COMPARISON RESULTS")
+        print("="*50)
+        print(f"XGBoost Best Fitness: {xgb_results['best_fitness']:.4f}")
+        print(f"XGBoost Test Accuracy: {xgb_test_accuracy:.4f}")
+        print(f"Keras Best Fitness: {keras_results['best_fitness']:.4f}")
+        print(f"Keras Test Accuracy: {keras_test_accuracy:.4f}")
+        
+        if keras_test_accuracy > xgb_test_accuracy:
+            print("\nKeras model performed better!")
+        else:
+            print("\nXGBoost model performed better!")
+            
+    except Exception as e:
+        print(f"\nKeras testing failed (likely due to missing TensorFlow): {e}")
+        print("Only XGBoost results are available.")
+        print(f"XGBoost Best Fitness: {xgb_results['best_fitness']:.4f}")
+        print(f"XGBoost Test Accuracy: {xgb_test_accuracy:.4f}")
+    
+    print("\n" + "="*50)
+    print("Bacteria Algorithm Demo Completed!")
+    print("="*50)
