@@ -11,6 +11,7 @@ from PIL import Image
 import io
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error
+from skimage.transform import resize as skimage_resize
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -83,17 +84,27 @@ class ImageCompare:
         self.file_input1.param.watch(self._on_image1_upload, 'value')
         self.file_input2.param.watch(self._on_image2_upload, 'value')
         self.compare_button.on_click(self._compare_images)
+    
+    def _convert_to_rgb(self, image_array):
+        """
+        Convert image array to RGB format.
+        
+        Handles grayscale and RGBA images by converting them to RGB.
+        """
+        if len(image_array.shape) == 2:
+            # Grayscale to RGB
+            return np.stack([image_array] * 3, axis=-1)
+        elif image_array.shape[2] == 4:
+            # RGBA to RGB
+            return image_array[:, :, :3]
+        return image_array
         
     def _on_image1_upload(self, event):
         """Handle first image upload"""
         if event.new:
             self.image1 = Image.open(io.BytesIO(event.new))
             self.image1_array = np.array(self.image1)
-            # Convert to RGB if necessary
-            if len(self.image1_array.shape) == 2:
-                self.image1_array = np.stack([self.image1_array] * 3, axis=-1)
-            elif self.image1_array.shape[2] == 4:
-                self.image1_array = self.image1_array[:, :, :3]
+            self.image1_array = self._convert_to_rgb(self.image1_array)
             
             self.image1_pane.object = self.image1
             self._update_button_state()
@@ -103,11 +114,7 @@ class ImageCompare:
         if event.new:
             self.image2 = Image.open(io.BytesIO(event.new))
             self.image2_array = np.array(self.image2)
-            # Convert to RGB if necessary
-            if len(self.image2_array.shape) == 2:
-                self.image2_array = np.stack([self.image2_array] * 3, axis=-1)
-            elif self.image2_array.shape[2] == 4:
-                self.image2_array = self.image2_array[:, :, :3]
+            self.image2_array = self._convert_to_rgb(self.image2_array)
             
             self.image2_pane.object = self.image2
             self._update_button_state()
@@ -124,13 +131,14 @@ class ImageCompare:
         
         # Resize images to match if they have different dimensions
         if self.image1_array.shape != self.image2_array.shape:
-            # Resize image2 to match image1
-            img2_resized = Image.fromarray(self.image2_array)
-            img2_resized = img2_resized.resize(
-                (self.image1_array.shape[1], self.image1_array.shape[0]),
-                Image.Resampling.LANCZOS
-            )
-            image2_array = np.array(img2_resized)
+            # Resize image2 to match image1 using skimage
+            target_shape = (self.image1_array.shape[0], self.image1_array.shape[1])
+            image2_array = skimage_resize(
+                self.image2_array, 
+                target_shape, 
+                preserve_range=True,
+                anti_aliasing=True
+            ).astype(np.uint8)
         else:
             image2_array = self.image2_array
         
@@ -144,7 +152,12 @@ class ImageCompare:
         
         # Calculate difference image
         diff = np.abs(self.image1_array.astype(float) - image2_array.astype(float))
-        diff_normalized = (diff / diff.max() * 255).astype(np.uint8) if diff.max() > 0 else diff.astype(np.uint8)
+        
+        # Normalize difference for visualization
+        if diff.max() > 0:
+            diff_normalized = (diff / diff.max() * 255).astype(np.uint8)
+        else:
+            diff_normalized = diff.astype(np.uint8)
         
         # Create difference visualization
         fig, ax = plt.subplots(figsize=(6, 6))
